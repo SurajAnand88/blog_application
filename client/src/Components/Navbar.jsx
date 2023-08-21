@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Input, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Text } from "@chakra-ui/react";
 import axios from "axios";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,11 +8,12 @@ const Navbar = () => {
   //   { user, onLogin, onLogout, onCreate }
   const token = localStorage.getItem("token") || null;
   const user = useSelector((store) => store.user);
+
   const dispatch = useDispatch();
   useEffect(() => {
     async function getUser() {
       const { data } = await axios.get(
-        `http://localhost:4000/api/auth/loggedinuser`,
+        `http://16.170.208.211:4000/api/auth/loggedinuser`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,8 +46,7 @@ const Navbar = () => {
           </Link>
         </Box>
         <Flex gap={3}>
-          <Input placeholder="Search..." />
-          {user ? (
+          {user && token ? (
             <>
               <Link to="/create">
                 <Button p={2} colorScheme="green">
