@@ -3,6 +3,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router";
+import { Link } from "react-router-dom";
 import SingleComment from "./SingleComment";
 
 const Blog = () => {
@@ -11,18 +12,29 @@ const Blog = () => {
   const [totalComments, setTotalComments] = useState([]);
   const toast = useToast();
   const { id } = useParams();
-  const user = useSelector((store) => store.user);
+  const [user, setUser] = useState({});
+  const loggedInUser = useSelector((state) => state.user);
 
   async function fetchComments() {
     const { data } = await axios.get(
-      `http://localhost:4000/api/posts/comments/${id}`
+      `http://16.170.208.211:4000/api/posts/comments/${id}`
     );
+
     setTotalComments([...data]);
   }
 
   useEffect(() => {
     async function fetchPostById() {
-      const { data } = await axios.get(`http://localhost:4000/api/posts/${id}`);
+      const { data } = await axios.get(
+        `http://16.170.208.211:4000/api/posts/${id}`
+      );
+      const userid = data.userid;
+      console.log(userid);
+      const { data: userData } = await axios.post(
+        `http://16.170.208.211:4000/api/users/getUser`,
+        { userid }
+      );
+      setUser({ ...userData });
       setData({ ...data });
     }
 
@@ -30,14 +42,13 @@ const Blog = () => {
     fetchComments();
   }, []);
 
-  console.log(data, user);
   async function addComment() {
     const token = localStorage.getItem("token") || null;
 
     try {
       if (token) {
         const { data } = await axios.post(
-          `http://localhost:4000/api/posts/addcomment/${id}`,
+          `http://16.170.208.211:4000/api/posts/addcomment/${id}`,
           { comment },
           {
             headers: {
@@ -45,7 +56,7 @@ const Blog = () => {
             },
           }
         );
-        console.log(data);
+
         toast({
           title: "Success",
           description: data,
@@ -67,6 +78,7 @@ const Blog = () => {
       });
     }
   }
+  console.log(user);
   return (
     <Box bg={"gray.200"}>
       <Flex
@@ -103,21 +115,40 @@ const Blog = () => {
         m={"auto"}
         border={"1px solid gray"}
       >
-        <Text fontSize={"2xl"} fontWeight={"bold"} textAlign={"center"}>
-          Add Your Comment
-        </Text>
-        <Textarea
-          placeholder="Enter your comment"
-          border={"1px solid gray"}
-          onChange={(e) => setComment(e.target.value)}
-        />
-        <Button
-          colorScheme="yellow"
-          border={"1px solid gray"}
-          onClick={addComment}
-        >
-          Submit
-        </Button>
+        {loggedInUser ? (
+          <>
+            <Text fontSize={"2xl"} fontWeight={"bold"} textAlign={"center"}>
+              Add Your Comment
+            </Text>
+            <Textarea
+              placeholder="Enter your comment"
+              border={"1px solid gray"}
+              onChange={(e) => setComment(e.target.value)}
+            />
+            <Button
+              colorScheme="yellow"
+              border={"1px solid gray"}
+              onClick={addComment}
+            >
+              Submit
+            </Button>
+          </>
+        ) : (
+          <>
+            <Text fontSize={"2xl"} fontWeight={"bold"} textAlign={"center"}>
+              Login to Add your comments
+            </Text>
+            <Link to="/login">
+              <Button
+                colorScheme="yellow"
+                border={"1px solid gray"}
+                onClick={addComment}
+              >
+                Login
+              </Button>
+            </Link>
+          </>
+        )}
       </Flex>
     </Box>
   );
